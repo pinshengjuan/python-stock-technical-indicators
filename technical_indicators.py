@@ -89,6 +89,26 @@ def macd(data: pd.DataFrame, fast: int = 12, slow: int = 26, signal: int = 9,
   
   return result
 
+def aroon(data: pd.DataFrame, periods: int = 25) -> tuple:
+  high = data['High']
+  low = data['Low']
+  aroon_up = pd.Series(index=high.index, dtype=float)
+  aroon_down = pd.Series(index=low.index, dtype=float)
+  aroon_osc = pd.Series(index=high.index, dtype=float)
+  
+  for i in range(periods, len(high)):
+    high_window = high[i-periods:i+1]
+    low_window = low[i-periods:i+1]
+    high_idx = high_window.idxmax()
+    low_idx = low_window.idxmin()
+    periods_since_high = i - high.index.get_loc(high_idx)
+    periods_since_low = i - low.index.get_loc(low_idx)
+    aroon_up.iloc[i] = ((periods - periods_since_high) / periods) * 100
+    aroon_down.iloc[i] = ((periods - periods_since_low) / periods) * 100
+    aroon_osc.iloc[i] = aroon_up.iloc[i] - aroon_down.iloc[i]
+  
+  return aroon_up, aroon_down, aroon_osc
+
 def bollinger_position(data: pd.DataFrame, window: int = 20, k: float = 2, return_all_zones: bool = False) -> pd.Series:
   if window <= 0 or k <= 0:
     raise ValueError("Window and k must be positive")
@@ -225,23 +245,3 @@ def fib_retracement(data: pd.DataFrame, periods: int = 90) -> pd.Series:
         position.iloc[i] = f'Between {level_keys[j+1]} and {level_keys[j]}'
 
   return position
-
-def aroon(data: pd.DataFrame, periods: int = 25) -> tuple:
-  high = data['High']
-  low = data['Low']
-  aroon_up = pd.Series(index=high.index, dtype=float)
-  aroon_down = pd.Series(index=low.index, dtype=float)
-  aroon_osc = pd.Series(index=high.index, dtype=float)
-  
-  for i in range(periods, len(high)):
-    high_window = high[i-periods:i+1]
-    low_window = low[i-periods:i+1]
-    high_idx = high_window.idxmax()
-    low_idx = low_window.idxmin()
-    periods_since_high = i - high.index.get_loc(high_idx)
-    periods_since_low = i - low.index.get_loc(low_idx)
-    aroon_up.iloc[i] = ((periods - periods_since_high) / periods) * 100
-    aroon_down.iloc[i] = ((periods - periods_since_low) / periods) * 100
-    aroon_osc.iloc[i] = aroon_up.iloc[i] - aroon_down.iloc[i]
-  
-  return aroon_up, aroon_down, aroon_osc

@@ -1,5 +1,5 @@
 import numpy as np
-from technical_indicators import sma, rsi, adx14, macd, bollinger_position, fib_retracement, aroon
+from technical_indicators import sma, rsi, adx14, macd, aroon, bollinger_position, fib_retracement
 from utils import load_config, get_multiple_days_price, get_current_price, write_to_file
 
 def main():
