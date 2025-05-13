@@ -49,13 +49,45 @@ def adx14(data: pd.DataFrame, periods: int = 14) -> pd.Series:
 
   return adx
 
-def is_macd_golden_cross(data: pd.DataFrame, fast: int = 12, slow: int = 26, signal: int = 9) -> pd.Series:
+def macd(data: pd.DataFrame, fast: int = 12, slow: int = 26, signal: int = 9, 
+         zero_threshold: float = 0.1, level_thresholds: tuple = (0.5, 0.2)) -> pd.DataFrame:
   close = data['Close']
   ema_fast = close.ewm(span=fast, adjust=False).mean()
   ema_slow = close.ewm(span=slow, adjust=False).mean()
   macd = ema_fast - ema_slow
   signal_line = macd.ewm(span=signal, adjust=False).mean()
-  return (macd > signal_line) & (macd.shift() <= signal_line.shift())
+  
+  # Golden cross: MACD crosses above signal line
+  is_golden_cross = (macd > signal_line) & (macd.shift() <= signal_line.shift())
+  
+  # Check if MACD is near zero
+  is_near_zero = abs(macd) < zero_threshold
+  
+  # Classify MACD levels
+  strong_threshold, mild_threshold = level_thresholds
+  def classify_macd_level(macd_value):
+    if macd_value > strong_threshold:
+      return "Strong Bullish"
+    elif macd_value > mild_threshold:
+      return "Bullish"
+    elif macd_value < -strong_threshold:
+      return "Strong Bearish"
+    elif macd_value < -mild_threshold:
+      return "Bearish"
+    else:
+      return "Neutral"
+  
+  macd_level = macd.apply(classify_macd_level)
+  
+  # Combine results into a DataFrame
+  result = pd.DataFrame({
+    'is_golden_cross': is_golden_cross,
+    'is_near_zero': is_near_zero,
+    'macd_level': macd_level,
+    'macd_value': macd
+  })
+  
+  return result
 
 def bollinger_position(data: pd.DataFrame, window: int = 20, k: float = 2, return_all_zones: bool = False) -> pd.Series:
   if window <= 0 or k <= 0:

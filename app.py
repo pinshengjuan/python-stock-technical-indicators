@@ -1,5 +1,5 @@
 import numpy as np
-from technical_indicators import sma, rsi, adx14, is_macd_golden_cross, bollinger_position, fib_retracement, aroon
+from technical_indicators import sma, rsi, adx14, macd, bollinger_position, fib_retracement, aroon
 from utils import load_config, get_multiple_days_price, get_current_price, write_to_file
 
 def main():
@@ -15,7 +15,10 @@ def main():
   sma_150 = sma(data_set, 150)
   rsi_50 = rsi(data_set, 50)
   adx_14 = adx14(data_set, 14)
-  macd_now = is_macd_golden_cross(data_set).iloc[-1]
+  macd_data = macd(data_set)
+  is_macd_golden_cross = macd_data['is_golden_cross'].iloc[-1]
+  macd_level = macd_data['macd_level'].iloc[-1]
+  is_macd_near_zero = macd_data['is_near_zero'].iloc[-1]
   boll_band = bollinger_position(data_set, window = 30)
   boll_now = boll_band.iloc[-1]
   fib_90 = fib_retracement(data_set, 90)
